@@ -1,0 +1,67 @@
+//
+// Copyright (C) 2026 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+soong_namespace {
+}
+
+package {
+    default_applicable_licenses: ["device_samsung_gts6lwifi_license"],
+}
+
+license {
+    name: "device_samsung_gts6lwifi_license",
+    visibility: [":__subpackages__"],
+    license_kinds: ["SPDX-license-identifier-Apache-2.0"],
+    license_text: ["LICENSE"],
+}
+
+// Adreno 640 GMU firmware from linux-firmware. The Adreno 630 SQE
+// microcode (a630_sqe.fw, shared by the A6xx family) comes from the Linaro
+// vendor package, like on db845c.
+license_kind {
+    name: "device_samsung_gts6lwifi_LICENSE_qcom",
+    conditions: ["notice", "proprietary"], // by exception only
+}
+
+license {
+    name: "device_samsung_gts6lwifi_firmware_license",
+    package_name: "Linux Firmware",
+    visibility: [":__subpackages__"],
+    license_kinds: ["device_samsung_gts6lwifi_LICENSE_qcom"],
+    license_text: [
+        "firmware/LICENSE.qcom",
+        "firmware/NOTICE.qcom",
+    ],
+}
+
+prebuilt_firmware {
+    name: "a640_gmu.bin",
+    licenses: ["device_samsung_gts6lwifi_firmware_license"],
+    vendor: true,
+    src: "firmware/a640_gmu.bin",
+    relative_install_path: "qcom",
+}
+
+// The remote processor firmware and the GPU zap shader are signed for this
+// device and stay on its firmware partition (apnhlos), which init mounts at
+// /mnt/vendor/apnhlos. The kernel loads them from firmware_class.path
+// (/vendor/firmware) as qcom/sm8150/samsung/gts6lwifi/<name>.mdt.
+install_symlink {
+    name: "gts6lwifi_apnhlos_firmware",
+    vendor: true,
+    installed_location: "firmware/qcom/sm8150/samsung/gts6lwifi",
+    symlink_target: "/mnt/vendor/apnhlos/image",
+}

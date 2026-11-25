@@ -1,0 +1,18 @@
+# Android fstab for the Samsung Galaxy Tab S6 Wi-Fi (SM-T860)
+#
+# The stock partition layout, without dynamic partitions. cache, unused by
+# AOSP, is the metadata partition. userdata is f2fs, with ext4 as the
+# fallback (format it in TWRP before the first boot: stock data is
+# encrypted with keys AOSP does not have).
+#
+#<src>                                                  <mnt_point>         <type>  <mnt_flags and options>                                                         <fs_mgr_flags>
+/dev/block/platform/soc/1d84000.ufshc/by-name/system    /system             erofs   ro                                                                              wait,first_stage_mount
+/dev/block/platform/soc/1d84000.ufshc/by-name/vendor    /vendor             erofs   ro                                                                              wait,first_stage_mount
+/dev/block/platform/soc/1d84000.ufshc/by-name/cache     /metadata           ext4    noatime,nosuid,nodev,discard                                                    wait,formattable,first_stage_mount,check
+/dev/block/platform/soc/1d84000.ufshc/by-name/userdata  /data               f2fs    nodev,noatime,nosuid,inlinecrypt,reserve_root=32768                             latemount,wait,formattable,fileencryption=aes-256-xts:aes-256-cts:v2+inlinecrypt_optimized,keydirectory=/metadata/vold/metadata_encryption,quota,check,fscompress
+/dev/block/platform/soc/1d84000.ufshc/by-name/userdata  /data               ext4    discard,noatime,noauto_da_alloc,data=ordered,user_xattr,barrier=1,inlinecrypt  latemount,wait,formattable,fileencryption=aes-256-xts:aes-256-cts:v2+inlinecrypt_optimized,keydirectory=/metadata/vold/metadata_encryption,quota,check
+# Signed remote processor firmware and the GPU zap shader (see Android.bp)
+/dev/block/platform/soc/1d84000.ufshc/by-name/apnhlos   /mnt/vendor/apnhlos vfat    ro,shortname=lower,uid=1000,gid=1000,dmask=227,fmask=337,context=u:object_r:gts6lwifi_apnhlos_file:s0 wait
+/devices/platform/soc/8804000.mmc/mmc_host/mmc*         auto                auto    defaults                                                                        voldmanaged=sdcard1:auto
+/devices/platform/soc/a6f8800.usb/*/usb*                auto                auto    defaults                                                                        voldmanaged=usb1:auto
+/dev/block/zram0                                        none                swap    defaults                                                                        zramsize=50%

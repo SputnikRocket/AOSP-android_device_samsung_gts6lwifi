@@ -1,6 +1,120 @@
 # Samsung Galaxy Tab S6 Wi-Fi (SM-T860, gts6lwifi): AOSP device configuration
 
-AOSP device configuration (`device/samsung/gts6lwifi`) for running Android on
-the [android-mainline kernel port](https://github.com/SputnikRocket/linux-android-gts6lwifi),
-with mainline graphics: Mesa freedreno, drm_hwcomposer and minigbm, the way
-AOSP's own db845c board runs android-mainline.
+AOSP device configuration (`device/samsung/gts6lwifi`) for Android 17
+(`android17-release`). It runs on the
+[android-mainline kernel port](https://github.com/SputnikRocket/linux-android-gts6lwifi)
+with mainline graphics: Mesa freedreno (GL) and turnip (Vulkan), drm_hwcomposer
+and minigbm. That is how AOSP's own Qualcomm board, db845c
+(`device/linaro/dragonboard`), runs android-mainline, and this tree reuses
+its graphics configuration and its Qualcomm userspace helpers.
+
+**Status: bring-up.** This tree has not been built or booted yet. SELinux is
+permissive (`androidboot.selinux=permissive`).
+
+| Area | State |
+| --- | --- |
+| Boot, storage (UFS, microSD) | Kernel side works (tested with the stock Android 12 system and vendor) |
+| USB (adb, MTP) | The port enumerates (tested with the kernel's serial console gadget); adb under AOSP is untested |
+| Display (AMSA05RB06, dual DSI, command mode) | Kernel side in progress: frames reach the panel, the picture is not right yet |
+| GPU (Adreno 640) | Mesa from the Linaro vendor package; needs the device's zap shader (see below) |
+| Touchscreen | Kernel driver (STM FTS1BA90A) |
+| KeyMint, Gatekeeper | Software implementations: the mainline kernel has no Qualcomm TEE (qseecom) driver |
+| Wi-Fi, Bluetooth, audio, sensors, cameras, battery | Not yet (the health HAL reports a full battery) |
+
+## Partitions
+
+The device launched with Android 9 and has no `super` partition. This tree
+keeps the stock layout:
+
+| Partition | Contents |
+| --- | --- |
+| `boot` | Kernel (`Image-dtb`: the DTB appended, as the bootloader wants it) and AOSP's first stage ramdisk, boot image header v1 |
+| `dtbo` | A placeholder overlay from the kernel build (the bootloader requires a valid one) |
+| `system` | erofs: system, with system_ext and product inside |
+| `vendor` | erofs |
+| `cache` | `/metadata` (ext4, formatted on first boot) |
+| `userdata` | `/data` (f2fs or ext4) |
+| `apnhlos` | The stock firmware partition, mounted read-only at `/mnt/vendor/apnhlos` |
+| `vbmeta` | Must be one with verification disabled |
+
+`system.img` and `vendor.img` are sized to their contents and written raw,
+not sparse.
+
+## Building
+
+You need a Linux machine that can build AOSP: about 400 GB of free disk space
+and 64 GB of RAM.
+
+1. Get the Android 17 sources, with this repository as
+   `device/samsung/gts6lwifi` (an example
+   [local manifest](local_manifests/gts6lwifi.xml)):
+
+   ```bash
+   mkdir aosp && cd aosp
+   repo init -u https://android.googlesource.com/platform/manifest -b android17-release
+   mkdir -p .repo/local_manifests
+   curl -o .repo/local_manifests/gts6lwifi.xml https://raw.githubusercontent.com/SputnikRocket/AOSP-android_device_samsung_gts6lwifi/main/local_manifests/gts6lwifi.xml
+   repo sync -c -j8
+   ```
+
+2. Get the Linaro vendor package, which holds the Mesa build and the
+   linux-firmware files db845c uses:
+
+   ```bash
+   ./device/linaro/dragonboard/fetch-vendor-package.sh
+   ```
+
+3. Get the kernel. From the
+   [kernel's Actions](https://github.com/SputnikRocket/linux-android-gts6lwifi/actions),
+   take a build of the plain variant (no `usbcon`, `reboot` or `drmdebug`
+   suffix: the USB console variant takes the USB port for itself). Put its
+   `Image-dtb` (from the `gts6lwifi-mainline-kernel-N` artifact) and
+   `dtbo.img` (from `gts6lwifi-mainline-boot-img-N`) in
+   `device/samsung/gts6lwifi-kernel/`. To use another directory, set
+   `TARGET_KERNEL_DIR`.
+
+4. Build:
+
+   ```bash
+   source build/envsetup.sh
+   lunch gts6lwifi-trunk_staging-userdebug
+   m
+   ```
+
+   The images are in `out/target/product/gts6lwifi/`: `boot.img`,
+   `dtbo.img`, `system.img` and `vendor.img`.
+
+## Installing
+
+From TWRP, with a vbmeta that disables verification already flashed:
+
+1. **Wipe → Format Data.** The stock data is encrypted with keys AOSP does
+   not have.
+2. Copy the images over and write them:
+
+   ```bash
+   adb push boot.img dtbo.img system.img vendor.img /tmp/
+   ```
+
+   ```bash
+   adb shell 'for p in boot dtbo system vendor; do dd if=/tmp/$p.img of=/dev/block/by-name/$p bs=4M || exit 1; done; sync'
+   ```
+
+3. Reboot. To go back to stock, flash the stock firmware with Odin.
+
+## Firmware
+
+| File | From |
+| --- | --- |
+| `qcom/a630_sqe.fw` | linux-firmware, in the Linaro vendor package |
+| `qcom/a640_gmu.bin` | linux-firmware, in [`firmware/`](firmware) (with its license) |
+| `qcom/sm8150/samsung/gts6lwifi/*` | The device's own firmware partition: a link to `/mnt/vendor/apnhlos/image` |
+
+The kernel loads all of them from `firmware_class.path=/vendor/firmware`. The
+remote processors start before `/mnt/vendor/apnhlos` is mounted, so
+`init.gts6lwifi.rc` starts them again once it is.
+
+The GPU zap shader (`a640_zap.mdt` and its `.b0N` parts) is signed for the
+device, so it has to come from the device too. This tree assumes it is in the
+firmware partition next to the remote processor firmware; that still needs
+checking on a real device.
