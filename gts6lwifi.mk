@@ -17,6 +17,12 @@
 # Samsung Galaxy Tab S6 Wi-Fi (SM-T860): AOSP on the android-mainline kernel,
 # with Mesa freedreno, drm_hwcomposer and minigbm for graphics.
 
+# The shipping API level (28) would bring in the HIDL MediaCas service, which
+# the device's FCM level (202504) does not allow any more; the AIDL one
+# (com.android.hardware.cas) is there. Read while base_vendor.mk is
+# inherited, so it has to be set before that.
+TARGET_REQUIRES_HIDL_CAS_HAL := false
+
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit_only.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 $(call inherit-product, device/samsung/gts6lwifi/device.mk)
