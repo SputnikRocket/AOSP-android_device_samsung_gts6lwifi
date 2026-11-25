@@ -78,9 +78,18 @@ and 64 GB of RAM.
 
    ```bash
    source build/envsetup.sh
-   lunch gts6lwifi-trunk_staging-userdebug
+   lunch gts6lwifi-cp2a-userdebug
    m
    ```
+
+   `cp2a` is the Android 17 release configuration. With `trunk_staging`, the
+   same sources build a development platform (`PLATFORM_VERSION=Baklava`).
+
+   Soong's analysis of the whole tree alone needs about 32 GB of memory; with
+   less, it gets killed (`soong bootstrap failed with: exit status 143`). On
+   WSL2, which by default gets half of the PC's memory, raise the limit in
+   `%UserProfile%\.wslconfig` (for example `memory=48GB` and `swap=32GB`
+   under `[wsl2]`), then run `wsl --shutdown` and start the build again.
 
    The images are in `out/target/product/gts6lwifi/`: `boot.img`,
    `dtbo.img`, `system.img` and `vendor.img`.
