@@ -196,5 +196,13 @@ PRODUCT_PACKAGES += \
 
 DEVICE_MANIFEST_FILE := $(LOCAL_PATH)/manifest.xml
 
+# adb asks to trust a computer on the screen, which may not work yet. Keys
+# put in $(GTS6LWIFI_LOCAL_DIR)/adb_keys (adbkey.pub files, one per line;
+# kept out of this repository) are trusted from the first boot.
+GTS6LWIFI_LOCAL_DIR ?= device/samsung/gts6lwifi-local
+ifneq ($(wildcard $(GTS6LWIFI_LOCAL_DIR)/adb_keys),)
+  PRODUCT_ADB_KEYS := $(GTS6LWIFI_LOCAL_DIR)/adb_keys
+endif
+
 PRODUCT_HOST_PACKAGES += \
     mkbootimg

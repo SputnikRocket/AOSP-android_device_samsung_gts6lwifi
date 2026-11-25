@@ -74,7 +74,14 @@ and 64 GB of RAM.
    `device/samsung/gts6lwifi-kernel/`. To use another directory, set
    `TARGET_KERNEL_DIR`.
 
-4. Build:
+4. Let adb in without the screen: adb asks to trust a computer on the
+   tablet's screen, which may not work yet. Put the `adbkey.pub` of each
+   computer you will use (on Windows `%UserProfile%\.android\adbkey.pub`,
+   elsewhere `~/.android/adbkey.pub`) into
+   `device/samsung/gts6lwifi-local/adb_keys`, one per line; the build trusts
+   them (`PRODUCT_ADB_KEYS`). That directory is not part of this repository.
+
+5. Build:
 
    ```bash
    source build/envsetup.sh
@@ -98,8 +105,16 @@ and 64 GB of RAM.
 
 From TWRP, with a vbmeta that disables verification already flashed:
 
-1. Copy the images to the microSD card (TWRP's `/tmp` is in RAM, too small
-   for `system.img`):
+1. Samsung's own boot images end with a `SEANDROIDENFORCE` trailer, which
+   the kernel's CI adds too; AOSP's `mkbootimg` does not. Add it to be safe
+   (the bootloader ignores what follows the image, apart from this):
+
+   ```bash
+   printf SEANDROIDENFORCE >> out/target/product/gts6lwifi/boot.img
+   ```
+
+   Then copy the images to the microSD card (TWRP's `/tmp` is in RAM, too
+   small for `system.img`):
 
    ```bash
    adb shell mkdir -p /external_sd/aosp
