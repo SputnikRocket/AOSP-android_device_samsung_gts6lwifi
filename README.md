@@ -16,7 +16,7 @@ permissive (`androidboot.selinux=permissive`).
 | Boot, storage (UFS, microSD) | Kernel side works (tested with the stock Android 12 system and vendor) |
 | USB (adb, MTP) | The port enumerates (tested with the kernel's serial console gadget); adb under AOSP is untested |
 | Display (AMSA05RB06, dual DSI, command mode) | Kernel side in progress: frames reach the panel, the picture is not right yet |
-| GPU (Adreno 640) | Mesa from the Linaro vendor package; needs the device's zap shader (see below) |
+| GPU (Adreno 640) | Mesa from the Linaro vendor package; the zap shader comes from the device's firmware partition |
 | Touchscreen | Kernel driver (STM FTS1BA90A) |
 | KeyMint, Gatekeeper | Software implementations: the mainline kernel has no Qualcomm TEE (qseecom) driver |
 | Wi-Fi, Bluetooth, audio, sensors, cameras, battery | Not yet (the health HAL reports a full battery) |
@@ -38,7 +38,8 @@ keeps the stock layout:
 | `vbmeta` | Must be one with verification disabled |
 
 `system.img` and `vendor.img` are sized to their contents and written raw,
-not sparse.
+not sparse. The stock partitions have room: `system` is 6.1 GiB and `vendor`
+1.3 GiB.
 
 ## Building
 
@@ -88,19 +89,36 @@ and 64 GB of RAM.
 
 From TWRP, with a vbmeta that disables verification already flashed:
 
-1. **Wipe → Format Data.** The stock data is encrypted with keys AOSP does
-   not have.
-2. Copy the images over and write them:
+1. Copy the images to the microSD card (TWRP's `/tmp` is in RAM, too small
+   for `system.img`):
 
    ```bash
-   adb push boot.img dtbo.img system.img vendor.img /tmp/
+   adb shell mkdir -p /external_sd/aosp
    ```
 
    ```bash
-   adb shell 'for p in boot dtbo system vendor; do dd if=/tmp/$p.img of=/dev/block/by-name/$p bs=4M || exit 1; done; sync'
+   adb push boot.img dtbo.img system.img vendor.img /external_sd/aosp/
    ```
 
-3. Reboot. To go back to stock, flash the stock firmware with Odin.
+2. Write them:
+
+   ```bash
+   adb shell 'cd /external_sd/aosp && for p in boot dtbo system vendor; do dd if=$p.img of=/dev/block/by-name/$p bs=4M || exit 1; done; sync'
+   ```
+
+3. Blank `userdata` and `cache` (the metadata partition). The stock data is
+   encrypted with keys AOSP does not have, and with metadata encryption
+   Android has to format `/data` itself on the first boot; it does so only
+   when it finds no file system there. TWRP's Format Data is not enough: it
+   leaves an ext4 that Android then cannot open. If `umount /data` fails,
+   untick Data under Mount first.
+
+   ```bash
+   adb shell 'umount /data; umount /cache; for p in userdata cache; do dd if=/dev/zero of=/dev/block/by-name/$p bs=1M count=64 || exit 1; done; sync'
+   ```
+
+4. Reboot. The first boot takes longer: it formats `/metadata` and `/data`.
+   To go back to stock, flash the stock firmware with Odin.
 
 ## Firmware
 
@@ -114,7 +132,6 @@ The kernel loads all of them from `firmware_class.path=/vendor/firmware`. The
 remote processors start before `/mnt/vendor/apnhlos` is mounted, so
 `init.gts6lwifi.rc` starts them again once it is.
 
-The GPU zap shader (`a640_zap.mdt` and its `.b0N` parts) is signed for the
-device, so it has to come from the device too. This tree assumes it is in the
-firmware partition next to the remote processor firmware; that still needs
-checking on a real device.
+The GPU zap shader is signed for the device, so it comes from the device
+too: `a640_zap.mdt` and `a640_zap.b00` to `.b02` are in the firmware
+partition's `image/` directory, next to the remote processor firmware.

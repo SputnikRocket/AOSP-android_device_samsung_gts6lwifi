@@ -45,7 +45,7 @@ BOARD_MKBOOTIMG_ARGS := \
     --board SRPSD11A005
 BOARD_PREBUILT_DTBOIMAGE := $(TARGET_KERNEL_DIR)/dtbo.img
 BOARD_BOOTIMAGE_PARTITION_SIZE := 67108864
-BOARD_DTBOIMG_PARTITION_SIZE := 8388608
+BOARD_DTBOIMG_PARTITION_SIZE := 10485760
 
 BOARD_KERNEL_CMDLINE := \
     androidboot.hardware=gts6lwifi \
@@ -70,8 +70,9 @@ BOARD_AVB_ENABLE := false
 
 #
 # Partitions: the stock (non-dynamic) layout. system holds system_ext and
-# product; images are sized to their contents and fit the stock partitions.
-# cache (unused by AOSP) is the metadata partition.
+# product; the erofs images are sized to their contents. Stock sizes:
+# system 6534725632, vendor 1379926016, cache 419430400 (unused by AOSP: the
+# metadata partition), userdata 245737959424 on a 256 GB tablet.
 #
 BOARD_FLASH_BLOCK_SIZE := 4096
 BOARD_SYSTEMIMAGE_FILE_SYSTEM_TYPE := erofs
