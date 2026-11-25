@@ -17,6 +17,8 @@
 PRODUCT_MAKEFILES := \
     $(LOCAL_DIR)/gts6lwifi.mk
 
+# cp2a is android17-release's release config (BUILD_ID CP2A.*). trunk_staging
+# there builds a development platform (codename Baklava), not Android 17.
 COMMON_LUNCH_CHOICES := \
-    gts6lwifi-trunk_staging-userdebug \
-    gts6lwifi-trunk_staging-eng
+    gts6lwifi-cp2a-userdebug \
+    gts6lwifi-cp2a-eng
