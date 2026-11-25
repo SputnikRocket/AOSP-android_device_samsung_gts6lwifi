@@ -1,0 +1,4 @@
+# The stock firmware partition (apnhlos): signed remote processor firmware
+# and the GPU zap shader, mounted read-only at /mnt/vendor/apnhlos
+type gts6lwifi_apnhlos_file, fs_type, contextmount_type;
+type gts6lwifi_apnhlos_block_device, dev_type;

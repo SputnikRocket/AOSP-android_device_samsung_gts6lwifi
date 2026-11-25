@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Put this in .repo/local_manifests/ of an android17-release checkout -->
+<manifest>
+  <remote name="github" fetch="https://github.com/" />
+
+  <project path="device/samsung/gts6lwifi"
+           name="SputnikRocket/AOSP-android_device_samsung_gts6lwifi"
+           remote="github"
+           revision="main" />
+</manifest>

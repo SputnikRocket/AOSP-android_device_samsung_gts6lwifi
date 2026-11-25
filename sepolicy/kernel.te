@@ -1,0 +1,3 @@
+# The firmware loader runs as the kernel, from the mounted firmware partition
+# (through the /vendor/firmware/qcom/sm8150/samsung/gts6lwifi link)
+r_dir_file(kernel, gts6lwifi_apnhlos_file)

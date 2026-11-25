@@ -1,0 +1,15 @@
+# UFS partitions (the SoC bus is "soc" on this kernel, not "soc@0")
+/dev/block/platform/soc/1d84000\.ufshc/by-name/system		u:object_r:system_block_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/vendor		u:object_r:system_block_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/userdata		u:object_r:userdata_block_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/cache		u:object_r:metadata_block_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/boot		u:object_r:boot_block_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/dtbo		u:object_r:dtbo_block_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/apnhlos		u:object_r:gts6lwifi_apnhlos_block_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/modemst[12]	u:object_r:modem_block_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/fsg		u:object_r:modem_block_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/fsc		u:object_r:modem_block_device:s0
+
+# The MSM display driver (simpledrm, the splash, is card0 until then)
+/dev/dri/card1							u:object_r:graphics_device:s0
+

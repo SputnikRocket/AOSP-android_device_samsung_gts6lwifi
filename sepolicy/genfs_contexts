@@ -1,0 +1,6 @@
+genfscon sysfs   /devices/platform/soc/2400000.remoteproc			u:object_r:sysfs_remoteproc:s0
+genfscon sysfs   /devices/platform/soc/4080000.remoteproc			u:object_r:sysfs_remoteproc:s0
+genfscon sysfs   /devices/platform/soc/8300000.remoteproc			u:object_r:sysfs_remoteproc:s0
+genfscon sysfs   /devices/platform/soc/17300000.remoteproc			u:object_r:sysfs_remoteproc:s0
+genfscon sysfs   /devices/platform/soc/ae00000.display-subsystem		u:object_r:sysfs_gpu:s0
+genfscon sysfs   /devices/platform/9e400000.memory/rmtfs			u:object_r:sysfs_rmtfs:s0
