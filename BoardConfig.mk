@@ -94,7 +94,11 @@ TARGET_USES_HWC2 := true
 # Mesa prebuilts from the Linaro vendor package (see Android.mk)
 BOARD_USE_CUSTOMIZED_MESA := true
 
+# Copies of device/linaro/dragonboard's sepolicy and its minigbm_msm one,
+# without what fails the Treble labeling check (enforced from board API
+# level 202604): the tinymix domain (coredomain, /system/bin/tinymix) and
+# the /system libdrm label. See sepolicy/README.md.
 BOARD_SEPOLICY_DIRS += \
-    device/linaro/dragonboard/sepolicy \
-    device/linaro/dragonboard/shared/graphics/minigbm_msm/sepolicy \
+    device/samsung/gts6lwifi/sepolicy/dragonboard \
+    device/samsung/gts6lwifi/sepolicy/minigbm_msm \
     device/samsung/gts6lwifi/sepolicy
