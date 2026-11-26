@@ -15,80 +15,148 @@
 # limitations under the License.
 #
 
-# Copies the WCN3998's Samsung firmware, which can't be in this repository,
-# from the tablet's own stock vendor partition into the build tree, with an
-# Android.bp that installs it (see proprietary-files.txt):
+# Copies Samsung's firmware that can't be in this repository from the
+# tablet's own stock partitions into the build tree, with an Android.bp and
+# a make fragment that install it (see proprietary-files.txt):
 #
-#   ./device/samsung/gts6lwifi/extract-files.sh <stock vendor>
+#   ./device/samsung/gts6lwifi/extract-files.sh <stock vendor> <stock modem>
 #
 # <stock vendor> is an image of the stock vendor partition (ext4, read with
-# debugfs, nothing is mounted or written to it) or a directory holding its
-# contents. The files go to vendor/samsung/gts6lwifi, or $GTS6LWIFI_BLOBS_DIR.
+# debugfs) or a directory with its contents; <stock modem> an image of the
+# modem partition (vfat, read with mtools' mcopy) or a directory with its
+# contents (holding image/). Nothing is mounted or written to the images.
+# The files go to vendor/samsung/gts6lwifi, or $GTS6LWIFI_BLOBS_DIR.
 
 set -euo pipefail
 
-if [ $# -ne 1 ]; then
-	sed -n 's/^# \{0,1\}//p' "$0" | sed -n '/^Copies/,/^contents/p' >&2
+if [ $# -ne 2 ]; then
+	sed -n 's/^# \{0,1\}//p' "$0" | sed -n '/^Copies/,/^The files/p' >&2
 	exit 1
 fi
 
-src=$1
+declare -A src=([vendor]=$1 [modem]=$2)
 here=$(cd "$(dirname "$0")" && pwd)
 top=$(cd "${here}/../../.." && pwd)
 out=${GTS6LWIFI_BLOBS_DIR:-${top}/vendor/samsung/gts6lwifi}
 
-get() { # <path in the vendor partition> <destination>
-	if [ -d "${src}" ]; then
-		cp "${src}/$1" "$2"
-	elif [ -f "${src}" ]; then
-		debugfs -R "dump -p $1 $2" "${src}" 2>/dev/null
-		[ -s "$2" ] || { echo "$1: not in ${src}" >&2; return 1; }
-	else
-		echo "${src}: no such image or directory" >&2
-		return 1
+for part in vendor modem; do
+	s=${src[${part}]}
+	if [ ! -e "${s}" ]; then
+		echo "${s}: no such image or directory" >&2
+		exit 1
 	fi
+	if [ -f "${s}" ]; then
+		tool=debugfs
+		[ "${part}" = vendor ] || tool=mcopy
+		if ! command -v "${tool}" >/dev/null; then
+			echo "${tool} is needed to read ${s} ($([ ${tool} = mcopy ] && echo mtools || echo e2fsprogs)); or pass a directory" >&2
+			exit 1
+		fi
+	fi
+done
+
+# get <partition> <path in it> <destination>: one file
+get() {
+	local s=${src[$1]}
+	if [ -d "${s}" ]; then
+		cp "${s}/$2" "$3"
+	elif [ "$1" = vendor ]; then
+		debugfs -R "dump -p $2 $3" "${s}" 2>/dev/null
+	else
+		mcopy -n -i "${s}" "::$2" "$3"
+	fi
+	[ -s "$3" ] || { echo "$2: not in ${s}" >&2; return 1; }
 }
 
-if [ -f "${src}" ] && ! command -v debugfs >/dev/null; then
-	echo "debugfs (e2fsprogs) is needed to read an image; or pass a directory" >&2
-	exit 1
-fi
+# getdir <partition> <directory in it> <destination>: a whole tree
+getdir() {
+	local s=${src[$1]}
+	mkdir -p "$3"
+	if [ -d "${s}" ]; then
+		cp -r "${s}/$2/." "$3"
+	elif [ "$1" = vendor ]; then
+		debugfs -R "rdump $2 $3" "${s}" 2>/dev/null
+		local base=${2%/}
+		base=${base##*/}
+		[ ! -d "$3/${base}" ] || { cp -r "$3/${base}/." "$3" && rm -r "${3:?}/${base}"; }
+	else
+		mcopy -s -n -i "${s}" "::${2%/}/*" "$3"
+	fi
+	[ -n "$(ls -A "$3")" ] || { echo "$2: not in ${s}" >&2; return 1; }
+}
 
+rm -rf "${out:?}/firmware"
 mkdir -p "${out}/firmware"
+tmp=$(mktemp -d)
+bp=${tmp}/Android.bp
+trap 'rm -rf "${tmp}"' EXIT
 modules=()
-bp=$(mktemp)
-trap 'rm -f "${bp}"' EXIT
 
-while read -r line; do
-	line=${line%%#*}
-	[ -n "${line// }" ] || continue
-	read -r path install module <<<"${line}"
-	file=${install##*/}
-	dir=${install%/*}
-	[ "${dir}" = "${install}" ] && dir=
-	get "${path}" "${out}/firmware/${module}"
-	modules+=("${module}")
+# module <name> <file in ${out}/firmware> <install path under /vendor/firmware>
+module() {
+	local file=${3##*/} dir=${3%/*}
+	[ "${dir}" != "$3" ] || dir=
+	if printf '%s\n' "${modules[@]}" | grep -qx "$1"; then
+		echo "Two files make module $1" >&2
+		return 1
+	fi
+	modules+=("$1")
 	cat >>"${bp}" <<EOF
 
 prebuilt_firmware {
-    name: "${module}",
+    name: "$1",
     vendor: true,
-    src: "firmware/${module}",
+    src: "firmware/$2",
     filename: "${file}",
 EOF
 	[ -z "${dir}" ] || echo "    relative_install_path: \"${dir}\"," >>"${bp}"
 	echo "}" >>"${bp}"
-	echo "${path} -> /vendor/firmware/${install} ($(stat -c %s "${out}/firmware/${module}") bytes)"
+}
+
+while read -r line; do
+	line=${line%%#*}
+	[ -n "${line// }" ] || continue
+	read -r path install name <<<"${line}"
+	part=vendor
+	case ${path} in
+	*:*) part=${path%%:*}; path=${path#*:} ;;
+	esac
+
+	if [ "${path%/}" = "${path}" ]; then
+		get "${part}" "${path}" "${out}/firmware/${name}"
+		module "${name}" "${name}" "${install}"
+		echo "${part}:${path} -> /vendor/firmware/${install}"
+		continue
+	fi
+
+	# A directory: every file in it, under ${install}
+	getdir "${part}" "${path}" "${tmp}/${name}"
+	n=0
+	while IFS= read -r -d '' f; do
+		rel=${f#"${tmp}/${name}/"}
+		m=${name}_$(echo "${rel}" | tr -c 'A-Za-z0-9._\n' '_')
+		mkdir -p "${out}/firmware/${name}"
+		cp "${f}" "${out}/firmware/${name}/${m}"
+		module "${m}" "${name}/${m}" "${install%/}/${rel}"
+		n=$((n + 1))
+	done < <(find "${tmp}/${name}" -type f -print0 | sort -z)
+	echo "${part}:${path} -> /vendor/firmware/${install%/}/ (${n} files)"
 done <"${here}/proprietary-files.txt"
 
 {
 	echo "// Generated by device/samsung/gts6lwifi/extract-files.sh from the"
-	echo "// tablet's stock vendor partition: Samsung's files, not to be shared."
+	echo "// tablet's stock partitions: Samsung's files, not to be shared."
 	echo
 	echo "soong_namespace {"
 	echo "}"
 	cat "${bp}"
 } >"${out}/Android.bp"
 
-printf '%s\n' "${modules[@]}" >"${out}/modules.txt"
-echo "Wrote ${out}"
+{
+	echo "# Generated by device/samsung/gts6lwifi/extract-files.sh"
+	echo "PRODUCT_PACKAGES += \\"
+	printf '    %s \\\n' "${modules[@]}"
+	echo
+} >"${out}/gts6lwifi-vendor.mk"
+
+echo "Wrote ${out}: ${#modules[@]} files"

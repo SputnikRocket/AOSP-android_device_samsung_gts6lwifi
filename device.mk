@@ -202,21 +202,19 @@ PRODUCT_PACKAGES += \
     tqftpserv
 
 #
-# Wireless: the WCN3998 (Wi-Fi 5 and Bluetooth 5). Samsung's firmware for it
-# (the WLAN firmware, signed for this device, the WLAN board data and the
-# Bluetooth firmware and NVM) can't be in this repository: extract-files.sh
-# copies it from the tablet's stock vendor partition (see README.md).
+# Wireless: the WCN3998 (Wi-Fi 5 and Bluetooth 5). Its WLAN firmware runs on
+# the modem DSP. Samsung's firmware for both (the modem's, from the modem
+# partition; the WLAN firmware, signed for this device, the WLAN board data
+# and the Bluetooth firmware and NVM, from the stock vendor partition) can't
+# be in this repository: extract-files.sh copies it from the tablet's own
+# stock partitions (see README.md), and lists it in gts6lwifi-vendor.mk.
 #
 GTS6LWIFI_BLOBS_DIR ?= vendor/samsung/gts6lwifi
-ifneq ($(wildcard $(GTS6LWIFI_BLOBS_DIR)/Android.bp),)
+ifneq ($(wildcard $(GTS6LWIFI_BLOBS_DIR)/gts6lwifi-vendor.mk),)
   PRODUCT_SOONG_NAMESPACES += $(GTS6LWIFI_BLOBS_DIR)
-  PRODUCT_PACKAGES += \
-      gts6lwifi_wlanmdsp.mbn \
-      gts6lwifi_ath10k_board.bin \
-      gts6lwifi_crbtfw21.tlv \
-      gts6lwifi_crnv21.bin
+  include $(GTS6LWIFI_BLOBS_DIR)/gts6lwifi-vendor.mk
 else
-  $(warning Missing $(GTS6LWIFI_BLOBS_DIR): no Wi-Fi without Samsung's WLAN firmware; run device/samsung/gts6lwifi/extract-files.sh)
+  $(warning Missing $(GTS6LWIFI_BLOBS_DIR): no Wi-Fi without the modem's and Samsung's WLAN firmware; run device/samsung/gts6lwifi/extract-files.sh)
   # linux-firmware's generic Bluetooth firmware for the WCN3998
   PRODUCT_PACKAGES += \
       crbtfw21.tlv \

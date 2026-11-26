@@ -1,6 +1,14 @@
-# Samsung's WCN3998 firmware, from the stock vendor partition, for
-# extract-files.sh: <path in the vendor partition> <install path under
-# /vendor/firmware> <module name>
+# Samsung's firmware for extract-files.sh, from the tablet's stock
+# partitions: [<partition>:]<path in it> <install path under
+# /vendor/firmware> <module name>. The partition is vendor unless given; a
+# path ending in / is a directory, installed whole, one module per file
+# (<module name>_<path in it>).
+
+# The modem's firmware, from the modem partition: the kernel loads
+# modem.mdt and its segments, and the modem asks tqftpserv for the rest
+# (its configurations in modem_pr/, and wlanmdsp.mbn below), which looks in
+# the same directory
+modem:/image/				qcom/sm8150/samsung/gts6lwifi-modem/			gts6lwifi_modem
 
 # The WLAN firmware, signed for the modem DSP that runs it. The modem asks
 # tqftpserv for it, which looks next to the modem's own firmware.
