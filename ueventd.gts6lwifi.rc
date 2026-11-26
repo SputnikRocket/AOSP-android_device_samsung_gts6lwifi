@@ -26,3 +26,8 @@ subsystem usbmisc
 /dev/dri/renderD128       0666   system     graphics
 
 /dev/qcom_rmtfs_mem1      0660   system     system
+
+# The panel's backlight. drm_hwcomposer (user system) sets the brightness
+# Android asks for, and turns the backlight off and on with the screen.
+/sys/class/backlight/*    brightness    0664   system   system
+/sys/class/backlight/*    bl_power      0664   system   system

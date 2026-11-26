@@ -18,9 +18,9 @@ has not been looked into yet.
 | --- | --- |
 | Boot, storage (UFS, microSD) | Kernel side works (tested with the stock Android 12 system and vendor) |
 | USB (adb) | Works; see [Building](#building) for adb without the screen |
-| Display (AMSA05RB06, dual DSI, command mode) | Works, through drm_hwcomposer |
+| Display (AMSA05RB06, dual DSI, command mode) | Works, through drm_hwcomposer, which also sets the brightness (the panel's `/sys/class/backlight` device) |
 | GPU (Adreno 640) | Works for SurfaceFlinger: Mesa from the Linaro vendor package; the zap shader comes from the device's firmware partition |
-| Touchscreen | Kernel driver (STM FTS1BA90A) |
+| Touchscreen | Works, from kernel run 43 (earlier kernels report it rotated) |
 | KeyMint, Gatekeeper | Software implementations: the mainline kernel has no Qualcomm TEE (qseecom) driver |
 | Wi-Fi, Bluetooth, audio, sensors, cameras, battery | Not yet (the health HAL reports a full battery) |
 
