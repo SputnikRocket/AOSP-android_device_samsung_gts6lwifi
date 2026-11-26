@@ -28,9 +28,8 @@ license {
     license_text: ["LICENSE"],
 }
 
-// Adreno 640 GMU firmware from linux-firmware. The Adreno 630 SQE
-// microcode (a630_sqe.fw, shared by the A6xx family) comes from the Linaro
-// vendor package, like on db845c.
+// Adreno 640 GMU firmware and the Adreno 630 SQE microcode (a630_sqe.fw,
+// shared by the A6xx family), from linux-firmware.
 license_kind {
     name: "device_samsung_gts6lwifi_LICENSE_qcom",
     conditions: ["notice", "proprietary"], // by exception only
@@ -53,6 +52,41 @@ prebuilt_firmware {
     vendor: true,
     src: "firmware/a640_gmu.bin",
     relative_install_path: "qcom",
+}
+
+// The Adreno 630/640 SQE microcode, from linux-firmware (as in the Linaro
+// vendor package, whose namespace this device doesn't export; see device.mk)
+prebuilt_firmware {
+    name: "gts6lwifi_a630_sqe.fw",
+    licenses: ["device_samsung_gts6lwifi_firmware_license"],
+    vendor: true,
+    src: "firmware/a630_sqe.fw",
+    filename: "a630_sqe.fw",
+    relative_install_path: "qcom",
+}
+
+license_kind {
+    name: "device_samsung_gts6lwifi_LICENSE_QualcommAtheros_ath10k",
+    conditions: ["notice", "by_exception_only", "proprietary"],
+}
+
+license {
+    name: "device_samsung_gts6lwifi_ath10k_license",
+    package_name: "Linux Firmware",
+    visibility: [":__subpackages__"],
+    license_kinds: ["device_samsung_gts6lwifi_LICENSE_QualcommAtheros_ath10k"],
+    license_text: ["firmware/LICENSE.QualcommAtheros_ath10k"],
+}
+
+// ath10k's description (firmware features) of the WCN3990 family's WLAN
+// firmware, from linux-firmware
+prebuilt_firmware {
+    name: "gts6lwifi_firmware-5.bin",
+    licenses: ["device_samsung_gts6lwifi_ath10k_license"],
+    vendor: true,
+    src: "firmware/firmware-5.bin",
+    filename: "firmware-5.bin",
+    relative_install_path: "ath10k/WCN3990/hw1.0",
 }
 
 license {

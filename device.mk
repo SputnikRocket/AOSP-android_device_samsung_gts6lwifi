@@ -49,14 +49,16 @@ PRODUCT_SOONG_NAMESPACES += \
     device/samsung/gts6lwifi \
     device/linaro/dragonboard
 
-# Linaro vendor package (Mesa and linux-firmware prebuilts):
+# Linaro vendor package (the Mesa prebuilts, see Android.mk):
 #   ./device/linaro/dragonboard/fetch-vendor-package.sh
+# Not its linux-firmware namespace: Soong makes install rules for every
+# module of an exported namespace, and its qca/ Bluetooth files would
+# collide with Samsung's. The two linux-firmware files used here are in
+# firmware/.
 include device/linaro/dragonboard/vendor-package-ver.mk
 ifeq ($(wildcard $(LINARO_VENDOR_PATH)shared/$(EXPECTED_LINARO_VENDOR_VERSION)),)
   $(warning Missing the Linaro vendor package: run ./device/linaro/dragonboard/fetch-vendor-package.sh)
 endif
-PRODUCT_SOONG_NAMESPACES += \
-    vendor/linaro/shared/$(EXPECTED_LINARO_VENDOR_VERSION)/linux-firmware
 
 #
 # Kernel, boot and storage
@@ -95,7 +97,7 @@ PRODUCT_PACKAGES += \
 # Adreno 640: SQE microcode (shared with the A630) and GMU firmware. The
 # zap shader is the device's own, from the firmware partition.
 PRODUCT_PACKAGES += \
-    a630_sqe.fw \
+    gts6lwifi_a630_sqe.fw \
     a640_gmu.bin \
     gts6lwifi_apnhlos_firmware
 
@@ -214,17 +216,13 @@ ifneq ($(wildcard $(GTS6LWIFI_BLOBS_DIR)/gts6lwifi-vendor.mk),)
   PRODUCT_SOONG_NAMESPACES += $(GTS6LWIFI_BLOBS_DIR)
   include $(GTS6LWIFI_BLOBS_DIR)/gts6lwifi-vendor.mk
 else
-  $(warning Missing $(GTS6LWIFI_BLOBS_DIR): no Wi-Fi without the modem's and Samsung's WLAN firmware; run device/samsung/gts6lwifi/extract-files.sh)
-  # linux-firmware's generic Bluetooth firmware for the WCN3998
-  PRODUCT_PACKAGES += \
-      crbtfw21.tlv \
-      crnv21.bin
+  $(warning Missing $(GTS6LWIFI_BLOBS_DIR): no Wi-Fi or Bluetooth without Samsung's firmware; run device/samsung/gts6lwifi/extract-files.sh)
 endif
 
 # ath10k's description of the WCN3990 family's firmware (linux-firmware),
 # and the regulatory database for cfg80211
 PRODUCT_PACKAGES += \
-    firmware-5.bin \
+    gts6lwifi_firmware-5.bin \
     gts6lwifi_regulatory.db
 
 # Wi-Fi, hotspot (hostapd) and Wi-Fi Direct (wpa_supplicant's P2P device),

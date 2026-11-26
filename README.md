@@ -63,8 +63,7 @@ and 64 GB of RAM.
    repo sync -c -j8
    ```
 
-2. Get the Linaro vendor package, which holds the Mesa build and the
-   linux-firmware files db845c uses:
+2. Get the Linaro vendor package, which holds the Mesa build db845c uses:
 
    ```bash
    ./device/linaro/dragonboard/fetch-vendor-package.sh
@@ -176,10 +175,9 @@ From TWRP, with a vbmeta that disables verification already flashed:
 
 | File | From |
 | --- | --- |
-| `qcom/a630_sqe.fw` | linux-firmware, in the Linaro vendor package |
-| `qcom/a640_gmu.bin` | linux-firmware, in [`firmware/`](firmware) (with its license) |
+| `qcom/a630_sqe.fw`, `qcom/a640_gmu.bin` | linux-firmware, in [`firmware/`](firmware) (with its license) |
 | `qcom/sm8150/samsung/gts6lwifi/*` | The device's own firmware partition: a link to `/mnt/vendor/apnhlos/image` |
-| `ath10k/WCN3990/hw1.0/firmware-5.bin` | linux-firmware, in the Linaro vendor package: ath10k's description of the WLAN firmware |
+| `ath10k/WCN3990/hw1.0/firmware-5.bin` | linux-firmware, in [`firmware/`](firmware) (with its license): ath10k's description of the WLAN firmware |
 | `qcom/sm8150/samsung/gts6lwifi-modem/*` | The modem's firmware, from the stock `modem` partition's `image/` (`extract-files.sh`), and `wlanmdsp.mbn`, the WLAN firmware it runs, from the stock vendor partition: the modem fetches that through tqftpserv, which only looks next to the modem firmware |
 | `ath10k/WCN3990/hw1.0/board.bin`, `qca/crbtfw21.tlv`, `qca/crnv21.bin` | Samsung's, from the stock vendor partition (`extract-files.sh`): the WLAN board data, the Bluetooth firmware and its NVM |
 | `regulatory.db` | [wireless-regdb](https://git.kernel.org/pub/scm/linux/kernel/git/wens/wireless-regdb.git), in [`firmware/`](firmware) (with its license): the regulatory database for cfg80211 |
