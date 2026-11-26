@@ -72,6 +72,12 @@ PRODUCT_COPY_FILES += \
 PRODUCT_VENDOR_PROPERTIES += \
     persist.sys.zram_enabled=1
 
+# Metadata encryption: the kernel's dm-default-key (2.x) takes the version 2
+# table format; vold defaults to the legacy one on devices that launched with
+# Android 10 or earlier, and the kernel then refuses the table.
+PRODUCT_VENDOR_PROPERTIES += \
+    ro.crypto.dm_default_key.options_format.version=2
+
 #
 # Graphics: Mesa freedreno (GL) and turnip (Vulkan) on the MSM DRM driver,
 # drm_hwcomposer and minigbm, as on db845c

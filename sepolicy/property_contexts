@@ -1,0 +1,2 @@
+# drm_hwcomposer's settings (vendor.hwc.drm.device), set by vendor init
+vendor.hwc.			u:object_r:vendor_hwc_prop:s0
