@@ -47,6 +47,9 @@ BOARD_PREBUILT_DTBOIMAGE := $(TARGET_KERNEL_DIR)/dtbo.img
 BOARD_BOOTIMAGE_PARTITION_SIZE := 67108864
 BOARD_DTBOIMG_PARTITION_SIZE := 10485760
 
+# At most 511 bytes in all, with what the kernel CI or a test adds: the
+# bootloader ignores the header's extra_cmdline, where mkbootimg puts the
+# rest of a longer line
 BOARD_KERNEL_CMDLINE := \
     androidboot.hardware=gts6lwifi \
     androidboot.boot_devices=soc/1d84000.ufshc \

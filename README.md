@@ -8,15 +8,18 @@ and minigbm. That is how AOSP's own Qualcomm board, db845c
 (`device/linaro/dragonboard`), runs android-mainline, and this tree reuses
 its graphics configuration and its Qualcomm userspace helpers.
 
-**Status: bring-up.** This tree has not been built or booted yet. SELinux is
-permissive (`androidboot.selinux=permissive`).
+**Status: bring-up.** It builds, and the tablet boots to the lock screen,
+with SurfaceFlinger rendering through Mesa. SELinux is permissive
+(`androidboot.selinux=permissive`) and still logs many denials. During
+bring-up the tablet sometimes restarted by itself after a few minutes; that
+has not been looked into yet.
 
 | Area | State |
 | --- | --- |
 | Boot, storage (UFS, microSD) | Kernel side works (tested with the stock Android 12 system and vendor) |
-| USB (adb, MTP) | The port enumerates (tested with the kernel's serial console gadget); adb under AOSP is untested |
-| Display (AMSA05RB06, dual DSI, command mode) | Kernel side in progress: frames reach the panel, the picture is not right yet |
-| GPU (Adreno 640) | Mesa from the Linaro vendor package; the zap shader comes from the device's firmware partition |
+| USB (adb) | Works; see [Building](#building) for adb without the screen |
+| Display (AMSA05RB06, dual DSI, command mode) | Works, through drm_hwcomposer |
+| GPU (Adreno 640) | Works for SurfaceFlinger: Mesa from the Linaro vendor package; the zap shader comes from the device's firmware partition |
 | Touchscreen | Kernel driver (STM FTS1BA90A) |
 | KeyMint, Gatekeeper | Software implementations: the mainline kernel has no Qualcomm TEE (qseecom) driver |
 | Wi-Fi, Bluetooth, audio, sensors, cameras, battery | Not yet (the health HAL reports a full battery) |
@@ -68,7 +71,8 @@ and 64 GB of RAM.
 3. Get the kernel. From the
    [kernel's Actions](https://github.com/SputnikRocket/linux-android-gts6lwifi/actions),
    take a build of the plain variant (no `usbcon`, `reboot` or `drmdebug`
-   suffix: the USB console variant takes the USB port for itself). Put its
+   suffix: the USB console variant takes the USB port for itself), run 42
+   or later: earlier kernels leave the panel dark. Put its
    `Image-dtb` (from the `gts6lwifi-mainline-kernel-N` artifact) and
    `dtbo.img` (from `gts6lwifi-mainline-boot-img-N`) in
    `device/samsung/gts6lwifi-kernel/`. To use another directory, set
