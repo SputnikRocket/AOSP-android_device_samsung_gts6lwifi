@@ -1,1 +1,5 @@
 get_prop(hal_graphics_composer_default, vendor_hwc_prop)
+
+# drm_hwcomposer sets the panel's brightness and turns it off with the screen
+allow hal_graphics_composer_default sysfs_gts6lwifi_backlight:dir r_dir_perms;
+allow hal_graphics_composer_default sysfs_gts6lwifi_backlight:file rw_file_perms;

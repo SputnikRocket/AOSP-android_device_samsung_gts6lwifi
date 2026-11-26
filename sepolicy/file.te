@@ -2,3 +2,6 @@
 # and the GPU zap shader, mounted read-only at /mnt/vendor/apnhlos
 type gts6lwifi_apnhlos_file, fs_type, contextmount_type;
 type gts6lwifi_apnhlos_block_device, dev_type;
+
+# The panel's backlight (brightness, bl_power), set by the composer
+type sysfs_gts6lwifi_backlight, sysfs_type, fs_type;
