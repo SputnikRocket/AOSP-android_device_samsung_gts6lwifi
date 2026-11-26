@@ -1,0 +1,17 @@
+# Samsung's WCN3998 firmware, from the stock vendor partition, for
+# extract-files.sh: <path in the vendor partition> <install path under
+# /vendor/firmware> <module name>
+
+# The WLAN firmware, signed for the modem DSP that runs it. The modem asks
+# tqftpserv for it, which looks next to the modem's own firmware.
+/firmware/wlanmdsp.mbn			qcom/sm8150/samsung/gts6lwifi-modem/wlanmdsp.mbn	gts6lwifi_wlanmdsp.mbn
+
+# The WLAN board data (this board's antennas and RF calibration), which
+# ath10k sends the firmware; as board.bin, since linux-firmware's board-2.bin
+# has no entry for this board
+/firmware/wlan/qca_cld/bdwlan.bin	ath10k/WCN3990/hw1.0/board.bin				gts6lwifi_ath10k_board.bin
+
+# The Bluetooth firmware and its configuration (NVM) for this board, where
+# hci_qca loads them
+/firmware/crbtfw21.tlv			qca/crbtfw21.tlv					gts6lwifi_crbtfw21.tlv
+/firmware/crnv21.bin			qca/crnv21.bin						gts6lwifi_crnv21.bin
