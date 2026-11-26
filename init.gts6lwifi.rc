@@ -34,12 +34,8 @@ on fs
     mount_all /vendor/etc/fstab.${ro.hardware} --early
 
     # The remote processors started (and failed) before their firmware was
-    # mounted: start them now. remoteproc numbering follows probe order, so
-    # try all four.
-    write /sys/class/remoteproc/remoteproc0/state start
-    write /sys/class/remoteproc/remoteproc1/state start
-    write /sys/class/remoteproc/remoteproc2/state start
-    write /sys/class/remoteproc/remoteproc3/state start
+    # mounted: start them now, all but the modem, which rmtfs starts
+    start gts6lwifi_rproc
 
 on post-fs
     # RLIMIT_MEMLOCK to 64 MiB
@@ -84,6 +80,14 @@ on sys-boot-completed-set && property:persist.sys.zram_enabled=1
 on shutdown
     stop rmtfs
 
+service gts6lwifi_rproc /vendor/bin/init.gts6lwifi.rproc.sh
+    user root
+    group system
+    disabled
+    oneshot
+
+# -s: rmtfs starts the modem (and the WLAN firmware with it) once it serves
+# the modem's file system
 service rmtfs /vendor/bin/rmtfs -o /dev/block/by-name -P -r -s
     class core
     user root

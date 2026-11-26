@@ -55,6 +55,13 @@ prebuilt_firmware {
     relative_install_path: "qcom",
 }
 
+// Starts the remote processors other than the modem (init.gts6lwifi.rc)
+sh_binary {
+    name: "init.gts6lwifi.rproc.sh",
+    vendor: true,
+    src: "init.gts6lwifi.rproc.sh",
+}
+
 // The remote processor firmware and the GPU zap shader are signed for this
 // device and stay on its firmware partition (apnhlos), which init mounts at
 // /mnt/vendor/apnhlos. The kernel loads them from firmware_class.path

@@ -197,6 +197,7 @@ PRODUCT_VENDOR_PROPERTIES += \
 # needs rmtfs for its file system and tqftpserv for its configuration.
 #
 PRODUCT_PACKAGES += \
+    init.gts6lwifi.rproc.sh \
     rmtfs \
     tqftpserv
 
