@@ -34,7 +34,12 @@ ifeq ($(wildcard $(GTS6LWIFI_MESA_DIR)/LICENSE),)
 $(warning Missing $(GTS6LWIFI_MESA_DIR): run ./device/linaro/dragonboard/fetch-vendor-package.sh)
 else
 
-# $(1): module name, $(2): directory under lib64/ (empty for lib64/ itself)
+# $(1): module name, $(2): directory under lib64/ (empty for lib64/ itself),
+# $(3): the libraries it links against (its DT_NEEDED, less libc, libm, libdl
+# and libc++, which the build adds itself). Listing them makes the build
+# install their vendor variants: nothing else on this device's vendor
+# partition needs libhardware or libui, and without them SurfaceFlinger
+# cannot load libEGL_mesa.
 define gts6lwifi-mesa-prebuilt
 include $$(CLEAR_VARS)
 LOCAL_MODULE := $(1)
@@ -48,15 +53,19 @@ LOCAL_VENDOR_MODULE := true
 LOCAL_STRIP_MODULE := false
 LOCAL_CHECK_ELF_FILES := false
 LOCAL_MULTILIB := 64
+LOCAL_SHARED_LIBRARIES := $(3)
 LOCAL_SRC_FILES := ../../../$(GTS6LWIFI_MESA_DIR)/lib64/$(if $(2),$(2)/)$(1).so
 include $$(BUILD_PREBUILT)
 endef
 
-$(eval $(call gts6lwifi-mesa-prebuilt,libEGL_mesa,egl))
-$(eval $(call gts6lwifi-mesa-prebuilt,libGLESv1_CM_mesa,egl))
-$(eval $(call gts6lwifi-mesa-prebuilt,libGLESv2_mesa,egl))
-$(eval $(call gts6lwifi-mesa-prebuilt,libgallium_dri,))
-$(eval $(call gts6lwifi-mesa-prebuilt,vulkan.freedreno,hw))
+GTS6LWIFI_MESA_GALLIUM_LIBS := libdrm liblog libcutils libz libsync
+GTS6LWIFI_MESA_WINSYS_LIBS := libdrm liblog libcutils libnativewindow libsync libhardware libui
+
+$(eval $(call gts6lwifi-mesa-prebuilt,libEGL_mesa,egl,$(GTS6LWIFI_MESA_WINSYS_LIBS) libgallium_dri))
+$(eval $(call gts6lwifi-mesa-prebuilt,libGLESv1_CM_mesa,egl,libgallium_dri))
+$(eval $(call gts6lwifi-mesa-prebuilt,libGLESv2_mesa,egl,libgallium_dri))
+$(eval $(call gts6lwifi-mesa-prebuilt,libgallium_dri,,$(GTS6LWIFI_MESA_GALLIUM_LIBS)))
+$(eval $(call gts6lwifi-mesa-prebuilt,vulkan.freedreno,hw,$(GTS6LWIFI_MESA_WINSYS_LIBS) libz))
 
 endif
 endif

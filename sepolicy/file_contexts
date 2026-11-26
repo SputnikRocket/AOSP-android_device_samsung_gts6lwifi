@@ -13,3 +13,7 @@
 # The MSM display driver (simpledrm, the splash, is card0 until then)
 /dev/dri/card1							u:object_r:graphics_device:s0
 
+
+# Loaded into SurfaceFlinger with Mesa's libEGL_mesa (sphal namespace).
+# The Mesa, libdrm and libui entries are in dragonboard/file_contexts.
+/vendor/lib(64)?/libhardware\.so					u:object_r:same_process_hal_file:s0
