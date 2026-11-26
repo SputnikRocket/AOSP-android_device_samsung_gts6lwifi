@@ -11,6 +11,9 @@
 /dev/block/platform/soc/1d84000.ufshc/by-name/cache     /metadata           ext4    noatime,nosuid,nodev,discard                                                    wait,formattable,first_stage_mount,check
 /dev/block/platform/soc/1d84000.ufshc/by-name/userdata  /data               f2fs    nodev,noatime,nosuid,inlinecrypt,reserve_root=32768                             latemount,wait,formattable,fileencryption=aes-256-xts:aes-256-cts:v2+inlinecrypt_optimized,keydirectory=/metadata/vold/metadata_encryption,quota,check,fscompress
 /dev/block/platform/soc/1d84000.ufshc/by-name/userdata  /data               ext4    discard,noatime,noauto_da_alloc,data=ordered,user_xattr,barrier=1,inlinecrypt  latemount,wait,formattable,fileencryption=aes-256-xts:aes-256-cts:v2+inlinecrypt_optimized,keydirectory=/metadata/vold/metadata_encryption,quota,check
+# The bootloader message (BCB): init writes "boot-recovery" there for a
+# restart into recovery, and gives up the restart if it cannot
+/dev/block/platform/soc/1d84000.ufshc/by-name/misc      /misc               emmc    defaults                                                                        defaults
 # Signed remote processor firmware and the GPU zap shader (see Android.bp)
 /dev/block/platform/soc/1d84000.ufshc/by-name/apnhlos   /mnt/vendor/apnhlos vfat    ro,shortname=lower,uid=1000,gid=1000,dmask=227,fmask=337,context=u:object_r:gts6lwifi_apnhlos_file:s0 wait
 /devices/platform/soc/8804000.mmc/mmc_host/mmc*         auto                auto    defaults                                                                        voldmanaged=sdcard1:auto
