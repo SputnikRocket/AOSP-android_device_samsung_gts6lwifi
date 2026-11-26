@@ -21,6 +21,7 @@ ifeq ($(TARGET_DEVICE),gts6lwifi)
 $(eval $(call declare-1p-copy-files,device/samsung/gts6lwifi,.rc))
 $(eval $(call declare-1p-copy-files,device/samsung/gts6lwifi,.xml))
 $(eval $(call declare-1p-copy-files,device/samsung/gts6lwifi,fstab.gts6lwifi))
+$(eval $(call declare-1p-copy-files,device/samsung/gts6lwifi,.conf))
 
 # Mesa (freedreno and turnip) from the Linaro vendor package, the build that
 # db845c ships. Its own Android.mk only defines these modules for db845c and

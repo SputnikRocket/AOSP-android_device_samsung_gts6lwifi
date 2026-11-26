@@ -22,7 +22,9 @@ has not been looked into yet.
 | GPU (Adreno 640) | Works for SurfaceFlinger: Mesa from the Linaro vendor package; the zap shader comes from the device's firmware partition |
 | Touchscreen | Works, from kernel run 43 (earlier kernels report it rotated) |
 | KeyMint, Gatekeeper | Software implementations: the mainline kernel has no Qualcomm TEE (qseecom) driver |
-| Wi-Fi, Bluetooth, audio, sensors, cameras, battery | Not yet (the health HAL reports a full battery) |
+| Wi-Fi (WCN3998, ath10k), hotspot, Wi-Fi Direct | Being brought up: wpa_supplicant and hostapd over nl80211, no vendor Wi-Fi HAL (as on db845c). The WLAN firmware runs on the modem DSP, whose firmware isn't reachable yet |
+| Bluetooth (WCN3998, hci_qca) | Being brought up: the default Bluetooth HAL over the kernel's HCI user channel, an address set at boot; A2DP through the audio HAL's Bluetooth module |
+| Audio, sensors, cameras, battery | Not yet (the health HAL reports a full battery) |
 
 ## Partitions
 
@@ -78,14 +80,28 @@ and 64 GB of RAM.
    `device/samsung/gts6lwifi-kernel/`. To use another directory, set
    `TARGET_KERNEL_DIR`.
 
-4. Let adb in without the screen: adb asks to trust a computer on the
+4. Copy Samsung's Wi-Fi and Bluetooth firmware from the tablet's own stock
+   vendor partition (it can't be shared, so it isn't in this repository):
+   with an image of it (from TWRP, or `adb shell su -c 'dd
+   if=/dev/block/by-name/vendor' > stock-vendor.img` while the stock system
+   still runs), or a directory with its contents,
+
+   ```bash
+   ./device/samsung/gts6lwifi/extract-files.sh stock-vendor.img
+   ```
+
+   It writes `vendor/samsung/gts6lwifi` (see
+   [proprietary-files.txt](proprietary-files.txt)). Without it the build
+   warns and has no Wi-Fi.
+
+5. Let adb in without the screen: adb asks to trust a computer on the
    tablet's screen, which may not work yet. Put the `adbkey.pub` of each
    computer you will use (on Windows `%UserProfile%\.android\adbkey.pub`,
    elsewhere `~/.android/adbkey.pub`) into
    `device/samsung/gts6lwifi-local/adb_keys`, one per line; the build trusts
    them (`PRODUCT_ADB_KEYS`). That directory is not part of this repository.
 
-5. Build:
+6. Build:
 
    ```bash
    source build/envsetup.sh
@@ -155,6 +171,9 @@ From TWRP, with a vbmeta that disables verification already flashed:
 | `qcom/a630_sqe.fw` | linux-firmware, in the Linaro vendor package |
 | `qcom/a640_gmu.bin` | linux-firmware, in [`firmware/`](firmware) (with its license) |
 | `qcom/sm8150/samsung/gts6lwifi/*` | The device's own firmware partition: a link to `/mnt/vendor/apnhlos/image` |
+| `ath10k/WCN3990/hw1.0/firmware-5.bin` | linux-firmware, in the Linaro vendor package: ath10k's description of the WLAN firmware |
+| `ath10k/WCN3990/hw1.0/board.bin`, `qcom/sm8150/samsung/gts6lwifi-modem/wlanmdsp.mbn`, `qca/crbtfw21.tlv`, `qca/crnv21.bin` | Samsung's, from the stock vendor partition (`extract-files.sh`): the WLAN board data, the WLAN firmware the modem runs, the Bluetooth firmware and its NVM |
+| `regulatory.db` | [wireless-regdb](https://git.kernel.org/pub/scm/linux/kernel/git/wens/wireless-regdb.git), in [`firmware/`](firmware) (with its license): the regulatory database for cfg80211 |
 
 The kernel loads all of them from `firmware_class.path=/vendor/firmware`. The
 remote processors start before `/mnt/vendor/apnhlos` is mounted, so

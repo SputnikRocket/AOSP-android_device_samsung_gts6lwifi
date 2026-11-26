@@ -97,6 +97,21 @@ TARGET_USES_HWC2 := true
 # Mesa prebuilts from the Linaro vendor package (see Android.mk)
 BOARD_USE_CUSTOMIZED_MESA := true
 
+#
+# Wi-Fi: the WCN3998's WLAN, on the upstream ath10k_snoc driver, through
+# nl80211. No vendor library (wpa_supplicant and hostapd then build their
+# stub) and no vendor Wi-Fi HAL, as on db845c.
+#
+WPA_SUPPLICANT_VERSION := VER_0_8_X
+BOARD_WPA_SUPPLICANT_DRIVER := NL80211
+BOARD_HOSTAPD_DRIVER := NL80211
+# wpa_supplicant's own init service, with its AIDL interface
+WIFI_HIDL_UNIFIED_SUPPLICANT_SERVICE_RC_ENTRY := true
+
+# Bluetooth: the WCN3998 over UART (hci_qca), through the kernel's HCI user
+# channel (android.hardware.bluetooth-service.default)
+BOARD_HAVE_BLUETOOTH := true
+
 # Copies of device/linaro/dragonboard's sepolicy and its minigbm_msm one,
 # without what fails the Treble labeling check (enforced from board API
 # level 202604): the tinymix domain (coredomain, /system/bin/tinymix) and

@@ -201,6 +201,65 @@ PRODUCT_PACKAGES += \
     rmtfs \
     tqftpserv
 
+#
+# Wireless: the WCN3998 (Wi-Fi 5 and Bluetooth 5). Samsung's firmware for it
+# (the WLAN firmware, signed for this device, the WLAN board data and the
+# Bluetooth firmware and NVM) can't be in this repository: extract-files.sh
+# copies it from the tablet's stock vendor partition (see README.md).
+#
+GTS6LWIFI_BLOBS_DIR ?= vendor/samsung/gts6lwifi
+ifneq ($(wildcard $(GTS6LWIFI_BLOBS_DIR)/Android.bp),)
+  PRODUCT_SOONG_NAMESPACES += $(GTS6LWIFI_BLOBS_DIR)
+  PRODUCT_PACKAGES += \
+      gts6lwifi_wlanmdsp.mbn \
+      gts6lwifi_ath10k_board.bin \
+      gts6lwifi_crbtfw21.tlv \
+      gts6lwifi_crnv21.bin
+else
+  $(warning Missing $(GTS6LWIFI_BLOBS_DIR): no Wi-Fi without Samsung's WLAN firmware; run device/samsung/gts6lwifi/extract-files.sh)
+  # linux-firmware's generic Bluetooth firmware for the WCN3998
+  PRODUCT_PACKAGES += \
+      crbtfw21.tlv \
+      crnv21.bin
+endif
+
+# ath10k's description of the WCN3990 family's firmware (linux-firmware),
+# and the regulatory database for cfg80211
+PRODUCT_PACKAGES += \
+    firmware-5.bin \
+    gts6lwifi_regulatory.db
+
+# Wi-Fi, hotspot (hostapd) and Wi-Fi Direct (wpa_supplicant's P2P device),
+# without a vendor Wi-Fi HAL
+PRODUCT_PACKAGES += \
+    hostapd \
+    libwpa_client \
+    wpa_supplicant \
+    wpa_supplicant.conf
+
+PRODUCT_VENDOR_PROPERTIES += \
+    wifi.interface=wlan0 \
+    wifi.direct.interface=p2p-dev-wlan0
+
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.wifi.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.xml \
+    frameworks/native/data/etc/android.hardware.wifi.direct.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.direct.xml \
+    frameworks/native/data/etc/android.hardware.wifi.passpoint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.passpoint.xml \
+    $(LOCAL_PATH)/wifi/wpa_supplicant_overlay.conf:$(TARGET_COPY_OUT_VENDOR)/etc/wifi/wpa_supplicant_overlay.conf \
+    $(LOCAL_PATH)/wifi/p2p_supplicant_overlay.conf:$(TARGET_COPY_OUT_VENDOR)/etc/wifi/p2p_supplicant_overlay.conf
+
+# Bluetooth, through the kernel's HCI user channel; bdaddr (db845c's) gives
+# the controller an address at boot (set_bdaddr.sh). A2DP audio goes through
+# the audio HAL's Bluetooth module (above).
+PRODUCT_PACKAGES += \
+    android.hardware.bluetooth-service.default \
+    bdaddr \
+    set_bdaddr.sh
+
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.bluetooth.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.bluetooth.xml \
+    frameworks/native/data/etc/android.hardware.bluetooth_le.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.bluetooth_le.xml
+
 DEVICE_MANIFEST_FILE := $(LOCAL_PATH)/manifest.xml
 
 # adb asks to trust a computer on the screen, which may not work yet. Keys
