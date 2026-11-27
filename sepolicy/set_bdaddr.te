@@ -1,0 +1,3 @@
+# set_bdaddr.sh (device/linaro/dragonboard's domain, in dragonboard/) greps
+# the serial number from /proc/cmdline, and grep stats the file first
+allow set_bdaddr proc_cmdline:file getattr;
